@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>question7-1</title>
+  <style>
+    .circle-box{
+      position: relative;
+      width: 1000px;
+      height: 1000px;
+      margin: 100px auto;
+      background:#eee;
+    }
+    .item{
+      position: absolute;
+      background: #aaa;
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 25px;
+      border-radius: 50%;
+      -webkit-border-radius: 50%;
+      -moz-border-radius: 50%;
+    }
+
+  </style>
+  <script type="text/javascript" src="https://ipl.sfc.keio.ac.jp/text/info2-2018-9/lib/jquery-3.3.1.min.js"></script>
+  <script>
+    $(function(){
+
+      //hour の　item を .circle-box に出力
+
+      $('.circle-box').append('<input class="item" type="button" value="12">');
+      $('.circle-box').append('<input class="item" type="button" value="1">');
+      $('.circle-box').append('<input class="item" type="button" value="2">');
+      $('.circle-box').append('<input class="item" type="button" value="3">');
+      $('.circle-box').append('<input class="item" type="button" value="4">');
+      $('.circle-box').append('<input class="item" type="button" value="5">');
+      $('.circle-box').append('<input class="item" type="button" value="6">');
+      $('.circle-box').append('<input class="item" type="button" value="7">');
+      $('.circle-box').append('<input class="item" type="button" value="8">');
+      $('.circle-box').append('<input class="item" type="button" value="9">');
+      $('.circle-box').append('<input class="item" type="button" value="10">');
+      $('.circle-box').append('<input class="item" type="button" value="11">');
+      //
+      //
+
+
+      //itemの親要素の半径を計算
+      var centerX = $('.circle-box').width()/2;
+      var centerY = $('.circle-box').height()/2;
+
+      //item要素数から角度を計算
+      var angle = 360/$('.item').length;
+
+      // //item要素の幅,高さの2分の1を取得
+      //
+      // var l = $('.item').width()/2;
+      // var h = $('.item').height()/2;
+
+
+      //指定
+
+
+
+
+      $(".item").each(function(i, elem) {
+
+        var radian = i * (Math.PI / 6);
+
+        //x,y座標の取得
+        var x = (centerX/5) + ($('.circle-box').width()/5) * Math.sin(radian) + 400;
+        var y = (centerY/5) - ($('.circle-box').height()/5) * Math.cos(radian) + 400;
+
+        //円周上を中心に配置されるよう位置を指定
+        $(".item").eq(i).css("left",x);
+        $(".item").eq(i).css("top",y);
+
+      });
+
+
+    });
+
+  </script>
+</head>
+<body>
+  <section class="circle-box">
+  </section>
+
+</body>
+</html>
