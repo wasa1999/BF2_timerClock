@@ -65,16 +65,26 @@
       clockMode();
     };
 
+
     function changeMode(){
+
+      var buttons = document.getElementsByClassName('num');
+
       switch (mode) {
 
         case 0:
           clearInterval(clockInterval);
+          buttons[0].value = 0;
+          buttons[10].value = "S";
+          buttons[11].value = "R";
           timerMode();
           break;
 
         case 1:
           clearInterval(timerInterval);
+          buttons[0].value = 12;
+          buttons[10].value = 10;
+          buttons[11].value = 11;
           clockMode();
           break;
 
@@ -128,6 +138,7 @@
           $(".num").eq(i).css("left",x);
           $(".num").eq(i).css("top",y);
 
+
         });
 
         //modeボタンをセット
@@ -159,44 +170,8 @@
       var ctx = canvas.getContext('2d');
       ctx.save();
 
-      // 各種設定
-      canvas.width = 300;
-      canvas.height = 300;
-      var w      = canvas.width;
-      var h      = canvas.height;
-      var center = {x : w / 2, y : h / 2};
-      // 文字盤の数字の中心までの半径(canvas の半分より少し小さく)
-      var rads     = w / 2 * 0.8;
+      init(canvas,ctx);
 
-      ctx.clearRect(0, 0, w, h);
-
-
-      // 時計の外側の丸
-      ctx.save();
-      ctx.strokeStyle = "rgb(255, 255, 255)";
-      ctx.lineWidth   = 1;
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = "#000";
-      ctx.translate(center.x,center.y);
-      // /* グラデーション領域をセット */
-      // // translateで座標を移動しているためグラデーションの始終を調整
-      var grad  = ctx.createLinearGradient(0,-h/2,0,h/2);
-      // /* グラデーションをfillStyleプロパティにセット */
-      ctx.fillStyle = 'rgb(192, 80, 77)';
-      ctx.beginPath();
-      ctx.arc(0, 0, (w/2)-5, 0, Math.PI * 2, false);
-      ctx.fill();
-      ctx.stroke();
-      /* circle white */
-      ctx.beginPath();
-      ctx.arc(0, 0, 100, 0, Math.PI * 2, false);
-      ctx.fillStyle   ="#FFF";
-      ctx.fill();
-
-      ctx.restore();
-
-      //  中心を移動
-      ctx.translate(center.x,center.y);
 
       // 分の線
       ctx.save();
@@ -286,6 +261,7 @@
     }
 
     var timerMode = function(){
+
       timer();
       mode = 1;
       timerInterval = setInterval('timer();',10);
@@ -299,44 +275,52 @@
       var ctx = canvas.getContext('2d');
       ctx.save();
 
-      // 各種設定
-      canvas.width = 300;
-      canvas.height = 300;
-      var w      = canvas.width;
-      var h      = canvas.height;
-      var center = {x : w / 2, y : h / 2};
-      // 文字盤の数字の中心までの半径(canvas の半分より少し小さく)
-      var rads     = w / 2 * 0.8;
-
-      ctx.clearRect(0, 0, w, h);
+      init(canvas, ctx);
+}
 
 
-      // 時計の外側の丸
-      ctx.save();
-      ctx.strokeStyle = "rgb(255, 255, 255)";
-      ctx.lineWidth   = 1;
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = "#000";
-      ctx.translate(center.x,center.y);
-      // /* グラデーション領域をセット */
-      // // translateで座標を移動しているためグラデーションの始終を調整
-      var grad  = ctx.createLinearGradient(0,-h/2,0,h/2);
-      // /* グラデーションをfillStyleプロパティにセット */
-      ctx.fillStyle = 'rgb(192, 80, 77)';
-      ctx.beginPath();
-      ctx.arc(0, 0, (w/2)-5, 0, Math.PI * 2, false);
-      ctx.fill();
-      ctx.stroke();
-      /* circle white */
-      ctx.beginPath();
-      ctx.arc(0, 0, 100, 0, Math.PI * 2, false);
-      ctx.fillStyle   ="#FFF";
-      ctx.fill();
+//時計の外枠の描画
+function init(canvas,ctx){
+  // 各種設定
+  canvas.width = 300;
+  canvas.height = 300;
+  var w      = canvas.width;
+  var h      = canvas.height;
+  var center = {x : w / 2, y : h / 2};
+  // 文字盤の数字の中心までの半径(canvas の半分より少し小さく)
+  var rads     = w / 2 * 0.8;
 
-      ctx.restore();
+  ctx.clearRect(0, 0, w, h);
 
-      //  中心を移動
-      ctx.translate(center.x,center.y);
+
+  // 時計の外側の丸
+  ctx.save();
+  ctx.strokeStyle = "rgb(255, 255, 255)";
+  ctx.lineWidth   = 1;
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = "#000";
+  ctx.translate(center.x,center.y);
+  // /* グラデーション領域をセット */
+  // // translateで座標を移動しているためグラデーションの始終を調整
+  var grad  = ctx.createLinearGradient(0,-h/2,0,h/2);
+  // /* グラデーションをfillStyleプロパティにセット */
+  ctx.fillStyle = 'rgb(192, 80, 77)';
+  ctx.beginPath();
+  ctx.arc(0, 0, (w/2)-5, 0, Math.PI * 2, false);
+  ctx.fill();
+  ctx.stroke();
+  /* circle white */
+  ctx.beginPath();
+  ctx.arc(0, 0, 100, 0, Math.PI * 2, false);
+  ctx.fillStyle   ="#FFF";
+  ctx.fill();
+
+  ctx.restore();
+
+  //  中心を移動
+  ctx.translate(center.x,center.y);
+
+
 }
 
 
