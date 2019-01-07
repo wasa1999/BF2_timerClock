@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>canvasで図形を描く</title>
+
+<script type="text/javascript">
+<!--
+function sample() {
+//描画コンテキストの取得
+var canvas = document.getElementById('sample1');
+if (canvas.getContext) {
+
+var ctx = canvas.getContext('2d');
+
+//左から20上から40の位置に、幅50高さ100の四角形を描く
+for (var i = 0; i < 8; i++){
+ ctx.filiRect(i*15,i*15,15,15);
+
+}
+}
+//-->
+</script>
+
+</head>
+<body onLoad="sample()">
+<h2>canvasで図形を描く</h2>
+<canvas>
+</canvas>
+</body>
+</html>

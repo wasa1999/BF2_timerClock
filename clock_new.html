@@ -6,323 +6,528 @@
 
 
   <style>
-    .circle-box{
-      position: relative;
-      width: 500px;
-      height: 500px;
-      margin: 100px auto;
-      background:'white';
-    }
-    .num{
-      position: absolute;
-      background: 'white';
-      width: 38px;
-      height: 38px;
-      text-align: center;
-      color: 'white';
-      font-weight: bold;
-      font-size: 22px;
-      border-radius: 50%;
-      -webkit-border-radius: 50%;
-      -moz-border-radius: 50%;
-    }
 
-    .mode{
-      position: absolute;
-      background: 'white';
-      width: 52px;
-      height: 20px;
-      text-align: center;
-      color: 'white';
-      font-weight: bold;
-      font-size: 10px;
-      border-radius: 10%;
-      -webkit-border-radius: 10%;
-      -moz-border-radius: 10%;
-    }
+  .circle-box{
+    position: relative;
+    width: 500px;
+    height: 500px;
+    margin: 100px auto;
+    background:'white';
+  }
 
-    canvas.circle-box{
-      margin: 300px;
-      background: #ff1493;
+  .num{
+    position: absolute;
+    background: 'white';
+    width: 38px;
+    height: 38px;
+    text-align: center;
+    color: 'white';
+    font-weight: bold;
+    font-size: 22px;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+  }
+
+  .mode{
+    position: absolute;
+    background: 'white';
+    width: 52px;
+    height: 20px;
+    text-align: center;
+    color: 'white';
+    font-weight: bold;
+    font-size: 10px;
+    border-radius: 10%;
+    -webkit-border-radius: 10%;
+    -moz-border-radius: 10%;
+  }
+
+  canvas.circle-box{
+    margin: 300px;
+    background: #ff1493;
 
 
-    }
+  }
+
+  #countdownExample{
+    position: absolute;
+    background: 'white';
+    width: 52px;
+    height: 20px;
+    text-align: center;
+    color: 'white';
+    font-weight: bold;
+    font-size: 30px;
+
+  }
 
   </style>
 
-  <script type="text/javascript" src="https://ipl.sfc.keio.ac.jp/text/info2-2018-9/lib/jquery-3.3.1.min.js"></script>
   <script>
-    // ページ読み込み時に init関数を実行
+
+
+    //私は情報基礎２の最終プロジェクトとして、タイマーモードを備えたアナログ時計を作りました。
+  //ただし、タイマーモードの実装はeasytimerという外部ライブラリを用いましたので、評価の対象としてもらわなくても構いません。
+  //タイマーモードは文字盤のボタンを使って、時間を分単位で指定します。そして、Sボタンを押すとタイマーが始まり、Rボタンを押すとタイマーが止まります。
+
+    //開発の動機としては、以下の２つが挙げられます。
+  //第一に、CSSやHTMLの基本をしっかりと身につけたかったからです。
+  //javascriptなどのプログラミングは他の授業でも学べますが、htmlやcssを学べるのは情報基礎２のみです。
+  //そのため、最終プロジェクトを機にhtmlとcssの基本をしっかり学びたいと思い、デザインなどにこだわれそうなアナログ時計を選びました。
+
+  　//第二に、三角関数と親しくなりたかったからです。
+  //コンピュータグラフィックスのコードを書いていると三角関数がよく登場します。
+  //もちろん中高で三角関数は学んだのですが、sin4/3πは？と聞かれて即答できるほどには三角関数と親しくないというのが正直なところです。
+  //そのため三角関数と親しくなりたいと思い、三角関数を多用するアナログ時計を選びました。
+
+  　//開発の際に苦労した点が３つあります。
+  //まず、ボタンを円周上に配置することです。
+  //三角関数の表を作りながら考えなければならなかったので時間がかかりました
+
+  　//次に、画面の切り替えの際にcanvas要素を変更することです。
+  //時計モードとタイマーモードではcanvas上に描画すべきものが大きく異なります。なので、これらの切り替えをうまく行うために要素を削除したり追加したりするのに時間がかかりました。
+
+  　//最後に、情報が少ない外部のライブラリを利用するのも大変でした。
+  //今回利用したeacytimer.jsというライブラリはpythonのmatplotlibやpandasなどとは違い、それほど情報が豊富ではありませんでした。そうした中、公式のリファレンスを読みながら仕様を読み解いていくのにじかんがかかりました。
+
+  </script>
+
+  <script type="text/javascript" src="https://ipl.sfc.keio.ac.jp/text/info2-2018-9/lib/jquery-3.3.1.min.js"></script>
+  <script src="/Users/Tomoya_Iwasaki/Desktop/fp/fundamental_Information2_Final_Project-/easytimer.js/dist/easytimer.min.js"></script>
+
+
+  <script>
+
+  //グローバル変数
+
+  var mode;       //modeのフラグ
+  var clockInterval = null;       //setInterval(clock)の返り値。intervalの解除に使う
+  var timerInterval = null;       //setInterval(timer)の返り値。intervalの解除に使う
+  var timerValue = null;        //timerにセットする値
+  var buttons = document.getElementsByClassName('num');       //ボタンをnumクラスとして取得
 
 
 
-    var mode;
-    var clockInterval = null;
-    var timerInterval = null;
+  //ページを読み込んだ際には、clockモードで表示
+  window.onload = function() {
+    drawButtons();
+    clockMode();
+  };
 
-    window.onload = function() {
-      drawButtons();
+
+
+  // clock関数を１秒周期で繰り返す。clockmodeのフラグは０。
+  var clockMode = function(){
+
+    clock();
+    mode = 0;
+    clockInterval = setInterval('clock();',1000);
+
+  }
+
+
+  // timer関数を１秒周期で繰り返す。timermodeのフラグは１。
+  var timerMode = function(){
+
+    timer();
+    mode = 1;
+    timerInterval = setInterval('timer();',1000);
+    showTimer();
+
+
+  }
+
+
+  //MODEボタンが押されたらモードを変更する関数。
+  //1:フラグ判別 -> 2:前のモードのインターバルを止める -> 3:モードに合わせて文字盤を変更 -> 4: モード関数の呼び出し
+  function changeMode(){
+
+    switch (mode) {
+
+      case 0:
+      clearInterval(clockInterval);
+      timerMode_buttons_config();
+      timerMode();
+      break;
+
+      case 1:
+      clearInterval(timerInterval);
+      clockMode_buttons_config();
+      var p = $('#countdownExample').remove();
       clockMode();
-    };
+      break;
+
+      default:
+
+    }
+  }
 
 
-    function changeMode(){
+  //タイマーモード時のボタンの設定
+  function timerMode_buttons_config(){
 
-      var buttons = document.getElementsByClassName('num');
+    buttons[0].value = 0;           //12を0に書き換える
+    buttons[10].value = "S";        //10をスタートボタンに書き換える
+    buttons[11].value = "R";        //11をリセットボタンに書き換える
 
-      switch (mode) {
 
-        case 0:
-          clearInterval(clockInterval);
-          buttons[0].value = 0;
-          buttons[10].value = "S";
-          buttons[11].value = "R";
-          timerMode();
-          break;
+    //タイマーを表示するhtml要素を追加
+    $('.circle-box').append('<div id="countdownExample"><div class="values"></div></div>');
 
-        case 1:
-          clearInterval(timerInterval);
-          buttons[0].value = 12;
-          buttons[10].value = 10;
-          buttons[11].value = 11;
-          clockMode();
-          break;
+    $("#countdownExample").css("left",80);
+    $("#countdownExample").css("top",130);
 
-        default:
+
+    //ボタンが押された時の処理
+    $(".num[value = 0]").click(function () {
+      concat(0);
+    });
+
+    $(".num[value = 1]").click(function () {
+      concat(1);
+    });
+
+    $(".num[value = 2]").click(function () {
+      concat(2);
+    });
+
+    $(".num[value = 3]").click(function () {
+      concat(3);
+    });
+
+    $(".num[value = 4]").click(function () {
+      concat(4);
+    });
+
+    $(".num[value = 5]").click(function () {
+      concat(5);
+    });
+
+    $(".num[value = 6]").click(function () {
+      concat(6);
+    });
+
+    $(".num[value = 7]").click(function () {
+      concat(7);
+    });
+
+    $(".num[value = 8]").click(function () {
+      concat(8);
+    });
+
+    $(".num[value = 9]").click(function () {
+      concat(9);
+    });
+
+    //タイマーをインスタンス化する必要があるため、R,Sボタンが押された時の処理は別に記述。
+
+  }
+
+
+  //ボタンから時間を算出する関数
+
+
+    function concat(button){
+
+      if (timerValue == null){
+
+        timerValue += button;
+        timerValue = String(timerValue);
 
       }
+
+      else {
+
+        timerValue += String(button);
+
+      }
+
+      timerValue = Number(timerValue);
+
+      return　timerValue;
+
     }
 
 
 
-    //ボタンを円周上に並べる
-    function drawButtons(){
-      $(function(){
+  //時計モード時の文字盤の設定
+  function clockMode_buttons_config(){
+    buttons[0].value = 12;
+    buttons[10].value = 10;
+    buttons[11].value = 11;
 
-        //hour の　num を .circle-box に出力
-
-        $('.circle-box').append('<input class="num" type="button" value="12">');
-        $('.circle-box').append('<input class="num" type="button" value="1">');
-        $('.circle-box').append('<input class="num" type="button" value="2">');
-        $('.circle-box').append('<input class="num" type="button" value="3">');
-        $('.circle-box').append('<input class="num" type="button" value="4">');
-        $('.circle-box').append('<input class="num" type="button" value="5">');
-        $('.circle-box').append('<input class="num" type="button" value="6">');
-        $('.circle-box').append('<input class="num" type="button" value="7">');
-        $('.circle-box').append('<input class="num" type="button" value="8">');
-        $('.circle-box').append('<input class="num" type="button" value="9">');
-        $('.circle-box').append('<input class="num" type="button" value="10">');
-        $('.circle-box').append('<input class="num" type="button" value="11">');
-
-        $('.circle-box').append('<input class="mode" type="button" value="MODE" onclick="changeMode()">');
+  }
 
 
-        //numの親要素の半径を計算
-        var centerX = $('.circle-box').width()/2;
-        var centerY = $('.circle-box').height()/2;
 
-        //num要素数から角度を計算
-        var angle = 360/$('.num').length;
+  //ボタンを円周上に並べる
+  function drawButtons(){
+    $(function(){
 
-        //円形に配置
+      //ボタンをnumクラスとして .circle-box に追加
 
-        $(".num").each(function(i, elem) {
+      $('.circle-box').append('<input class="num" type="button" value="12">');
+      $('.circle-box').append('<input class="num" type="button" value="1">');
+      $('.circle-box').append('<input class="num" type="button" value="2">');
+      $('.circle-box').append('<input class="num" type="button" value="3">');
+      $('.circle-box').append('<input class="num" type="button" value="4">');
+      $('.circle-box').append('<input class="num" type="button" value="5">');
+      $('.circle-box').append('<input class="num" type="button" value="6">');
+      $('.circle-box').append('<input class="num" type="button" value="7">');
+      $('.circle-box').append('<input class="num" type="button" value="8">');
+      $('.circle-box').append('<input class="num" type="button" value="9">');
+      $('.circle-box').append('<input class="num" type="button" value="10">');
+      $('.circle-box').append('<input class="num" type="button" value="11">');
 
-          var radian = i * (Math.PI / 6);
 
-          //x,y座標の取得
-          var x = (centerX/5) + ($('.circle-box').width()/4) * Math.sin(radian) + 83;
-          var y = (centerY/5) - ($('.circle-box').height()/4) * Math.cos(radian) + 83;
+      //モードを変更するボタンの追加
 
-          //円周上を中心に配置されるよう位置を指定
-          $(".num").eq(i).css("left",x);
-          $(".num").eq(i).css("top",y);
+      $('.circle-box').append('<input class="mode" type="button" value="MODE" onclick="changeMode()">');
+      $(".mode").css("left",126);
+      $(".mode").css("top",210);
 
 
-        });
+      //.circle-boxの半径を計算
+      var centerX = $('.circle-box').width()/2;
+      var centerY = $('.circle-box').height()/2;
 
-        //modeボタンをセット
 
-        $(".mode").css("left",126);
-        $(".mode").css("top",210);
+      //num要素数から角度を計算
+      var angle = 360/$('.num').length;
+
+
+      //円形に配置
+
+      $(".num").each(function(i, elem) {
+
+        var radian = i * (Math.PI / 6);
+
+        //x,y座標の取得
+        var x = (centerX/5) + ($('.circle-box').width()/4) * Math.sin(radian) + 83;
+        var y = (centerY/5) - ($('.circle-box').height()/4) * Math.cos(radian) + 83;
+
+        //円周上を中心に配置されるよう位置を指定
+        $(".num").eq(i).css("left",x);
+        $(".num").eq(i).css("top",y);
 
 
       });
 
-    }
+    });
+
+  }
 
 
+  //タイマーを表示する関数
 
-    // clock関数を１秒周期で繰り返す
-    var clockMode = function(){
-      clock();
-      mode = 0;
-      clockInterval = setInterval('clock();',1000);
-    }
+  function showTimer(){
+
+    var timer = new easytimer.Timer();
+
+    //１秒たったらhtml（タイマーの文字列）を更新
+
+    $('#countdownExample .values').html(timer.getTimeValues().toString());
+    timer.addEventListener('secondsUpdated', function (e) {
+      $('#countdownExample .values').html(timer.getTimeValues().toString());
+    });
 
 
+    // タイマーが終了した時の処理
 
-    // 時計を描画する
+    timer.addEventListener('targetAchieved', function (e) {
+      $('#countdownExample .values').html('Finish!!');
+    });
+
+
+    // Rが押された時にリセットする。
+
+    $(".num[value = 'R']").click(function () {
+      alert(timerValue + " min ");
+      timer.reset();
+    });
+
+
+    // Sが押された時にスタートする。
+
+    $(".num[value = 'S']").click(function () {
+      alert(timerValue + " min ");
+      timer.start({countdown: true, startValues: {minutes: timerValue}});
+
+    });
+
+  }
+
+
+  // clockモードのcanvas設定
     var clock = function(){
-      var now = new Date();
 
-      var canvas = document.getElementById("clockid");
-      var ctx = canvas.getContext('2d');
-      ctx.save();
+    var now = new Date();
 
-      init(canvas,ctx);
+    var canvas = document.getElementById("clockid");
+    var ctx = canvas.getContext('2d');
+    ctx.save();
 
+    init(canvas,ctx);
 
-      // 分の線
-      ctx.save();
-      ctx.strokeStyle ="#CCC";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      for (var i=0;i<60;i++){
-        if (i%5!=0) {
-          ctx.moveTo(100,0);
-          ctx.lineTo(95,0);
-        }
-        ctx.rotate(Math.PI/30);
-      }
-      ctx.stroke();
+    //以下はclockモード特有のcanvas設定。分の線、時間の線、長針、短針、秒針、中心の丸。
 
-      // 時間の線
-      ctx.strokeStyle ="#999";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      for (var i=0;i<60;i++){
+    // 分の線
+    ctx.save();
+    ctx.strokeStyle = "rgb(204,204,204)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (var i=0;i<60;i++){
+      if (i%5!=0) {
         ctx.moveTo(100,0);
-        ctx.lineTo(90,0);
-        ctx.rotate(Math.PI/6);
+        ctx.lineTo(95,0);
       }
-      ctx.stroke();
-      ctx.restore();
-
-
-      // 針の設定
-      var sec = now.getSeconds();
-      var min = now.getMinutes();
-      var hr = now.getHours();
-      hr = hr>=12 ? hr-12 : hr; // 12以上なら「hr-12」、それ以外なら「hr」
-      ctx.fillStyle = "#999";
-
-      // 短針の描画
-      ctx.save();
-      ctx.rotate( hr*(Math.PI/6) + (Math.PI/360)*min + (Math.PI/21600)*sec )
-      ctx.lineWidth = 8;
-      ctx.shadowBlur = 5;
-      ctx.shadowColor = "#666";
-      ctx.beginPath();
-      ctx.moveTo(-3,25);
-      ctx.lineTo(0,-70);
-      ctx.lineTo(3,25);
-      ctx.stroke();
-      ctx.restore();
-
-      // 長針の描画
-      ctx.save();
-      ctx.rotate( (Math.PI/30)*min + (Math.PI/1800)*sec )
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "rgb(0, 0, 0)";
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = "#999";
-      ctx.beginPath();
-      ctx.moveTo(-2,25);
-      ctx.lineTo(0,-105);
-      ctx.lineTo(2,25);
-      ctx.stroke();
-      ctx.restore();
-
-      // 秒針の描画
-      ctx.save();
-      ctx.rotate(sec * Math.PI/30);
-      ctx.strokeStyle = "rgb(207, 170, 77)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0,30);
-      ctx.lineTo(0,-100);
-      ctx.stroke();
-      ctx.restore();
-
-      // 中心の丸
-      ctx.save();
-      ctx.beginPath();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = "rgb(207, 170, 77)";
-      ctx.fillStyle   = "rgb(186, 168, 132)";
-      ctx.arc(0,0,7,0,Math.PI*2,true);
-      ctx.stroke();
-      ctx.fill();
-      ctx.restore();
-
-      ctx.restore();
-
+      ctx.rotate(Math.PI/30); //回転を細かくする
     }
+    ctx.stroke();
 
-    var timerMode = function(){
-
-      timer();
-      mode = 1;
-      timerInterval = setInterval('timer();',10);
+    // 時間の線
+    ctx.strokeStyle =　"rgb(204,204,204)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (var i=0;i<60;i++){
+      ctx.moveTo(100,0);
+      ctx.lineTo(90,0);
+      ctx.rotate(Math.PI/6);　//回転を大きくする
     }
+    ctx.stroke();
+    ctx.restore();
 
 
-    var timer = function(){
-      var now = new Date();
+    // 針の設定
+    var sec = now.getSeconds();
+    var min = now.getMinutes();
+    var hr = now.getHours();
+    hr = hr>=12 ? hr-12 : hr; // 12以上なら「hr-12」、それ以外なら「hr」
+    ctx.fillStyle = "#999";
 
-      var canvas = document.getElementById("clockid");
-      var ctx = canvas.getContext('2d');
-      ctx.save();
+    // 短針の描画
+    ctx.save();
+    ctx.rotate( hr*(Math.PI/6) + (Math.PI/360)*min + (Math.PI/21600)*sec )
+    ctx.lineWidth = 8;
+    ctx.strokeStyle = "rgb(0, 0, 0)";
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = "#666";
+    ctx.beginPath();
+    ctx.moveTo(-3,25);
+    ctx.lineTo(0,-70);
+    ctx.lineTo(3,25);
+    ctx.stroke();
+    ctx.restore();
 
-      init(canvas, ctx);
-}
+    // 長針の描画
+    ctx.save();
+    ctx.rotate( (Math.PI/30)*min + (Math.PI/1800)*sec )
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "rgb(0, 0, 0)";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#999";
+    ctx.beginPath();
+    ctx.moveTo(-2,25);
+    ctx.lineTo(0,-105);
+    ctx.lineTo(2,25);
+    ctx.stroke();
+    ctx.restore();
+
+    // 秒針の描画
+    ctx.save();
+    ctx.rotate(sec * Math.PI/30);
+    ctx.strokeStyle = "rgb(207, 170, 77)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0,30);
+    ctx.lineTo(0,-100);
+    ctx.stroke();
+    ctx.restore();
+
+    // 中心の丸
+    ctx.save();
+    ctx.beginPath();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgb(207, 170, 77)";
+    ctx.fillStyle   = "rgb(186, 168, 132)";
+    ctx.arc(0,0,7,0,Math.PI*2,true);
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
+
+  }
 
 
-//時計の外枠の描画
-function init(canvas,ctx){
-  // 各種設定
-  canvas.width = 300;
-  canvas.height = 300;
-  var w      = canvas.width;
-  var h      = canvas.height;
-  var center = {x : w / 2, y : h / 2};
-  // 文字盤の数字の中心までの半径(canvas の半分より少し小さく)
-  var rads     = w / 2 * 0.8;
+// timerモードのcanvas設定
+  var timer = function(){
 
-  ctx.clearRect(0, 0, w, h);
+    var now = new Date();
 
+    var canvas = document.getElementById("clockid");
+    var ctx = canvas.getContext('2d');
+    ctx.save();
 
-  // 時計の外側の丸
-  ctx.save();
-  ctx.strokeStyle = "rgb(255, 255, 255)";
-  ctx.lineWidth   = 1;
-  ctx.shadowBlur = 10;
-  ctx.shadowColor = "#000";
-  ctx.translate(center.x,center.y);
-  // /* グラデーション領域をセット */
-  // // translateで座標を移動しているためグラデーションの始終を調整
-  var grad  = ctx.createLinearGradient(0,-h/2,0,h/2);
-  // /* グラデーションをfillStyleプロパティにセット */
-  ctx.fillStyle = 'rgb(192, 80, 77)';
-  ctx.beginPath();
-  ctx.arc(0, 0, (w/2)-5, 0, Math.PI * 2, false);
-  ctx.fill();
-  ctx.stroke();
-  /* circle white */
-  ctx.beginPath();
-  ctx.arc(0, 0, 100, 0, Math.PI * 2, false);
-  ctx.fillStyle   ="#FFF";
-  ctx.fill();
+    init(canvas, ctx);
 
-  ctx.restore();
-
-  //  中心を移動
-  ctx.translate(center.x,center.y);
+  }
 
 
-}
 
+  //時計の外枠の描画
+  function init(canvas,ctx){
+
+    // 各種設定
+    canvas.width = 300;
+    canvas.height = 300;
+    var w = canvas.width;
+    var h = canvas.height;
+    var center = {x : w / 2, y : h / 2};
+
+    // 文字盤の数字の中心までの半径(canvas の半分より少し小さく)
+    var rads = w / 2 * 0.8;
+
+    ctx.clearRect(0, 0, w, h);
+
+
+    // 時計の外側の丸
+
+    ctx.save();
+    ctx.strokeStyle = "rgb(255, 255, 255)";
+    ctx.lineWidth   = 1;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#000";
+    ctx.translate(center.x,center.y);
+
+    // /* グラデーション領域をセット */
+    // // translateで座標を移動しているためグラデーションの始終を調整
+
+
+    var grad  = ctx.createLinearGradient(0,-h/2,0,h/2);
+
+    // /* グラデーションをfillStyleプロパティにセット */
+    ctx.fillStyle = 'rgb(192, 80, 77)';
+    ctx.beginPath();
+    ctx.arc(0, 0, (w/2)-5, 0, Math.PI * 2, false);
+    ctx.fill();
+    ctx.stroke();
+
+
+    /* circle white */
+    ctx.beginPath();
+    ctx.arc(0, 0, 100, 0, Math.PI * 2, false);
+    ctx.fillStyle   ="#FFF";
+    ctx.fill();
+
+    ctx.restore();
+
+    //  中心を移動
+    ctx.translate(center.x,center.y);
+
+
+  }
 
 
   </script>
@@ -331,6 +536,7 @@ function init(canvas,ctx){
 <body>
   <section class="circle-box">
     <canvas id="clockid"></canvas>
+
   </section>
 
 </body>
